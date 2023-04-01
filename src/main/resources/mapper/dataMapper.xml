@@ -103,4 +103,6 @@
     <update id="clearData">
         TRUNCATE TABLE `data_table`
     </update>
+
+
 </mapper>
