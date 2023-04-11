@@ -6,15 +6,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 
 @Service
 public class DataService {
-
-
     @Autowired
     private DataMapper dataMapper;
 
@@ -50,6 +50,23 @@ public class DataService {
             list.subList(0, subList.size()).clear();
         }
         return resultList;
+    }
+
+    // 生成对象
+    public List<Data> getDatas() {
+
+        // 自己按需求生成自定义对象列表
+        List<Data> dataList = new ArrayList<>();
+
+        Data data1 = new Data();
+        Data data2 = new Data();
+        Data data3 = new Data();
+
+        dataList.add(data1);
+        dataList.add(data2);
+        dataList.add(data3);
+
+        return dataList;
     }
 
     // 单项查询

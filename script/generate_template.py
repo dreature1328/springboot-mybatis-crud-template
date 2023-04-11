@@ -88,7 +88,17 @@ text18 = f'''    // 重写 toString 方法
 # --- Common 层 ---
 
 # --- Controller 层 ---
-text2 = '// 暂无'
+text2 = f'''
+	@Autowired
+	private {project_name_pascal}Service {project_name}Service;
+ 
+ 	// 生成对象
+	@ResponseBody
+	@RequestMapping("/{url_name}/get")
+	public HTTPResult get{class_name}s() throws Exception {{
+		return HTTPResult.success({project_name}Service.get{class_name}s());
+	}}
+'''
 # --- Controller 层 ---
 
 # --- Service 层 ---
@@ -128,6 +138,23 @@ text3 = f'''
             list.subList(0, subList.size()).clear();
         }}
         return resultList;
+    }}
+    
+    // 生成对象
+    public List<{class_name}> get{class_name}s() {{
+
+        // 自己按需求生成自定义对象列表
+        List<{class_name}> {object_name}List = new ArrayList<>();
+
+        {class_name} {object_name}1 = new {class_name}();
+        {class_name} {object_name}2 = new {class_name}();
+        {class_name} {object_name}3 = new {class_name}();
+
+        {object_name}List.add({object_name}1);
+        {object_name}List.add({object_name}2);
+        {object_name}List.add({object_name}3);
+
+        return {object_name}List;
     }}
 '''
 # --- Service 层 ---
@@ -240,6 +267,31 @@ for i in range(actions_num):
     action_pascal = capitalize_first_letter(action)
     
     if(action in ['select']):
+        text2 += f'''
+	// 依次{action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/{action}")
+	public HTTPResult {action}{class_name}(String {primary_attr}) throws Exception {{
+		return HTTPResult.success({project_name}Service.{action}{class_name}({primary_attr}));
+	}}
+
+	// 批量{action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/b{action}")
+	public HTTPResult batch{action_pascal}{class_name}(String {primary_attr}s) throws Exception {{
+		List<String> {primary_attr}List = Arrays.asList({primary_attr}s.split(","));
+		return HTTPResult.success({project_name}Service.batch{action_pascal}{class_name}({primary_attr}List));
+	}}
+
+	// 分页{action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/p{action}")
+	public HTTPResult page{action_pascal}{class_name}(String {primary_attr}s) throws Exception {{
+		List<String> {primary_attr}List = Arrays.asList({primary_attr}s.split(","));
+		return HTTPResult.success({project_name}Service.batch{action_pascal}{class_name}({primary_attr}List));
+	}}
+    '''
+    
         text3 += f'''
     // 单项{action_zh}
     public {class_name} {action}{class_name}({primary_attr_type} {primary_attr}) {{
@@ -279,6 +331,32 @@ for i in range(actions_num):
     
     
     elif(action in ['insert','update','insertOrUpdate']):
+        text2 += f'''
+	// 依次{action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/{action}")
+	public HTTPResult {action}{class_name}() throws Exception {{
+		{project_name}Service.{action}{class_name}({object_name}Service.get{class_name}s().toArray(new {class_name}[0]));
+		return HTTPResult.success(null);
+	}}
+
+	// 批量{action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/b{action}")
+	public HTTPResult batch{action_pascal}{class_name}() throws Exception {{
+		{project_name}Service.batch{action_pascal}{class_name}({object_name}Service.get{class_name}s());
+		return HTTPResult.success(null);
+	}}
+
+	// 分页{action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/p{action}")
+	public HTTPResult page{action_pascal}{class_name}() throws Exception {{
+		{project_name}Service.page{action_pascal}{class_name}({object_name}Service.get{class_name}s());
+		return HTTPResult.success(null);
+	}}
+    '''
+    
         text3 += f'''
     // 单项{action_zh}
     public void {action}{class_name}({class_name} {object_name}) {{
@@ -317,6 +395,34 @@ for i in range(actions_num):
         public void batch{action_pascal}{class_name}(List<{class_name}> {object_name}List);'''
     
     elif(action in ['delete']):
+        text2 += f'''
+	// 依次{action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/{action}")
+	public HTTPResult {action}{class_name}(String {primary_attr}) throws Exception {{
+		{project_name}Service.{action}{class_name}({primary_attr});
+		return HTTPResult.success(null);
+	}}
+
+	// 批量{action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/b{action}")
+	public HTTPResult batch{action_pascal}{class_name}(String {primary_attr}s) throws Exception {{
+		List<String> {primary_attr}List = Arrays.asList({primary_attr}s.split(","));
+		{project_name}Service.batch{action_pascal}{class_name}({primary_attr}List);
+		return HTTPResult.success(null);
+	}}
+
+	// 分页{action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/p{action}")
+	public HTTPResult page{action_pascal}{class_name}(String {primary_attr}s) throws Exception {{
+		List<String> {primary_attr}List = Arrays.asList({primary_attr}s.split(","));
+		{project_name}Service.page{action_pascal}{class_name}({primary_attr}List);
+		return HTTPResult.success(null);
+	}}
+    '''
+    
         text3 += f'''
     // 单项{action_zh}
     public void {action}{class_name}({primary_attr_type} {primary_attr}) {{
@@ -355,6 +461,16 @@ for i in range(actions_num):
         public void batch{action_pascal}{class_name}(List<{primary_attr_type}> {primary_attr}List);'''
     
     elif(action in ['clear']):
+        text2 += f'''
+	// {action_zh}
+	@ResponseBody
+	@RequestMapping("/{url_name}/{action}")
+	public HTTPResult {action}{class_name}() throws Exception {{
+		{project_name}Service.{action}{class_name}();
+		return HTTPResult.success(null);
+	}}
+
+    '''
         text3 += f'''
     // {action_zh}
     public void {action}{class_name}(){{
