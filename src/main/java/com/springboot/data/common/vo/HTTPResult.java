@@ -152,12 +152,12 @@ public class HTTPResult {
 	}
 
 	// 获取状态码对应的英文提示语
-	public String getMessageEn() {
-		return statusCodesEn.get(this.code);
+	public static String getMessageEn(Integer code) {
+		return statusCodesEn.get(code);
 	}
 	// 获取状态码对应的中文提示语
-	public String getMessageZh() {
-		return statusCodesZh.get(this.code);
+	public static String getMessageZh(Integer code) {
+		return statusCodesZh.get(code);
 	}
 
 	// 将返回结果对象转化为 JSON 对象

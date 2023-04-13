@@ -17,21 +17,18 @@ public class DataController {
 	private DataService dataService;
 
 	// 生成对象
-	@ResponseBody
 	@RequestMapping("/data/get")
-	public HTTPResult getDatas() throws Exception {
-		return HTTPResult.success(dataService.getDatas());
+	public HTTPResult generateDatas() throws Exception {
+		return HTTPResult.success(dataService.generateDatas());
 	}
 
 	// 依次查询
-	@ResponseBody
 	@RequestMapping("/data/select")
 	public HTTPResult selectData(String id) throws Exception {
 		return HTTPResult.success(dataService.selectData(id));
 	}
 
 	// 批量查询
-	@ResponseBody
 	@RequestMapping("/data/bselect")
 	public HTTPResult batchSelectData(String ids) throws Exception {
 		List<String> idList = Arrays.asList(ids.split(","));
@@ -39,7 +36,6 @@ public class DataController {
 	}
 
 	// 分页查询
-	@ResponseBody
 	@RequestMapping("/data/pselect")
 	public HTTPResult pageSelectData(String ids) throws Exception {
 		List<String> idList = Arrays.asList(ids.split(","));
@@ -47,79 +43,69 @@ public class DataController {
 	}
 
 	// 依次插入
-	@ResponseBody
 	@RequestMapping("/data/insert")
 	public HTTPResult insertData() throws Exception {
-		dataService.insertData(dataService.getDatas().toArray(new Data[0]));
+		dataService.insertData(dataService.generateDatas().toArray(new Data[0]));
 		return HTTPResult.success(null);
 	}
 
 	// 批量插入
-	@ResponseBody
 	@RequestMapping("/data/binsert")
 	public HTTPResult batchInsertData() throws Exception {
-		dataService.batchInsertData(dataService.getDatas());
+		dataService.batchInsertData(dataService.generateDatas());
 		return HTTPResult.success(null);
 	}
 
 	// 分页插入
-	@ResponseBody
 	@RequestMapping("/data/pinsert")
 	public HTTPResult pageInsertData() throws Exception {
-		dataService.pageInsertData(dataService.getDatas());
+		dataService.pageInsertData(dataService.generateDatas());
 		return HTTPResult.success(null);
 	}
 
 	// 依次更新
-	@ResponseBody
 	@RequestMapping("/data/update")
 	public HTTPResult updateData() throws Exception {
-		dataService.updateData(dataService.getDatas().toArray(new Data[0]));
+		dataService.updateData(dataService.generateDatas().toArray(new Data[0]));
 		return HTTPResult.success(null);
 	}
 
 	// 批量更新
-	@ResponseBody
 	@RequestMapping("/data/bupdate")
 	public HTTPResult batchUpdateData() throws Exception {
-		dataService.batchUpdateData(dataService.getDatas());
+		dataService.batchUpdateData(dataService.generateDatas());
 		return HTTPResult.success(null);
 	}
 
 	// 分页更新
-	@ResponseBody
 	@RequestMapping("/data/pupdate")
 	public HTTPResult pageUpdateData() throws Exception {
-		dataService.pageUpdateData(dataService.getDatas());
+		dataService.pageUpdateData(dataService.generateDatas());
 		return HTTPResult.success(null);
 	}
 
 	// 依次插入或更新
-	@ResponseBody
 	@RequestMapping("/data/insertOrUpdate")
 	public HTTPResult insertOrUpdateData() throws Exception {
-		dataService.insertOrUpdateData(dataService.getDatas().toArray(new Data[0]));
+		dataService.insertOrUpdateData(dataService.generateDatas().toArray(new Data[0]));
 		return HTTPResult.success(null);
 	}
 
 	// 批量插入或更新
-	@ResponseBody
 	@RequestMapping("/data/binsertOrUpdate")
 	public HTTPResult batchInsertOrUpdateData() throws Exception {
-		dataService.batchInsertOrUpdateData(dataService.getDatas());
+		dataService.batchInsertOrUpdateData(dataService.generateDatas());
 		return HTTPResult.success(null);
 	}
 
 	// 分页插入或更新
-	@ResponseBody
 	@RequestMapping("/data/pinsertOrUpdate")
 	public HTTPResult pageInsertOrUpdateData() throws Exception {
-		dataService.pageInsertOrUpdateData(dataService.getDatas());
+		dataService.pageInsertOrUpdateData(dataService.generateDatas());
 		return HTTPResult.success(null);
 	}
 
 	// 依次删除
-	@ResponseBody
 	@RequestMapping("/data/delete")
 	public HTTPResult deleteData(String id) throws Exception {
 		dataService.deleteData(id);
@@ -127,7 +113,6 @@ public class DataController {
 	}
 
 	// 批量删除
-	@ResponseBody
 	@RequestMapping("/data/bdelete")
 	public HTTPResult batchDeleteData(String ids) throws Exception {
 		List<String> idList = Arrays.asList(ids.split(","));
@@ -136,7 +121,6 @@ public class DataController {
 	}
 
 	// 分页删除
-	@ResponseBody
 	@RequestMapping("/data/pdelete")
 	public HTTPResult pageDeleteData(String ids) throws Exception {
 		List<String> idList = Arrays.asList(ids.split(","));
@@ -145,7 +129,6 @@ public class DataController {
 	}
 
 	// 清空
-	@ResponseBody
 	@RequestMapping("/data/clear")
 	public HTTPResult clearData() throws Exception {
 		dataService.clearData();

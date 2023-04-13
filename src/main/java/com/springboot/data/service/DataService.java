@@ -6,9 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -53,7 +51,7 @@ public class DataService {
     }
 
     // 生成对象
-    public List<Data> getDatas() {
+    public List<Data> generateDatas() {
 
         // 自己按需求生成自定义对象列表
         List<Data> dataList = new ArrayList<>();

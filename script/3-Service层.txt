@@ -37,7 +37,7 @@
     }
     
     // 生成对象
-    public List<Data> getDatas() {
+    public List<Data> generateDatas() {
 
         // 自己按需求生成自定义对象列表
         List<Data> dataList = new ArrayList<>();
