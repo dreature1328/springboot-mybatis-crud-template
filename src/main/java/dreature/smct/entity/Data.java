@@ -1,4 +1,4 @@
-package com.springboot.data.common.pojo;
+package dreature.smct.entity;
 
 public class Data {
     // 属性
@@ -52,7 +52,6 @@ public class Data {
         this.attr2 = attr2;
     }
 
-
     // 重写 toString 方法
     @Override
     public String toString() {
@@ -60,7 +59,7 @@ public class Data {
             "Data["
             + "id=" + id + ", "
             + "attr1=" + attr1 + ", "
-            + "attr2=" + attr2 + ", "
+            + "attr2=" + attr2
             + "]";
     }
 }
