@@ -32,20 +32,22 @@ public class Data {
     public String getId() {
         return id;
     }
-    public String getAttr1() {
-        return attr1;
-    }
-    public String getAttr2() {
-        return attr2;
-    }
 
     // Setter 方法
     public void setId(String id) {
         this.id = id;
     }
 
+    public String getAttr1() {
+        return attr1;
+    }
+
     public void setAttr1(String attr1) {
         this.attr1 = attr1;
+    }
+
+    public String getAttr2() {
+        return attr2;
     }
 
     public void setAttr2(String attr2) {
@@ -56,10 +58,10 @@ public class Data {
     @Override
     public String toString() {
         return
-            "Data["
-            + "id=" + id + ", "
-            + "attr1=" + attr1 + ", "
-            + "attr2=" + attr2
-            + "]";
+                "Data["
+                        + "id=" + id + ", "
+                        + "attr1=" + attr1 + ", "
+                        + "attr2=" + attr2
+                        + "]";
     }
 }

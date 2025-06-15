@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public class DataServiceImpl extends BaseServiceImpl<Data> implements DataServic
     @Autowired
     private DataMapper dataMapper;
 
-    // 生成对象（测试用）
+    // 生成数据（测试用）
     public List<Data> generate(int count) {
         // 此处以 UUID 作为 ID，长度为 16 的随机字符串作为属性值为例
         List<Data> dataList = new ArrayList<>(count);
@@ -30,7 +31,7 @@ public class DataServiceImpl extends BaseServiceImpl<Data> implements DataServic
         int length = 16;
 
         StringBuilder sb = new StringBuilder(length);
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             String id = UUID.randomUUID().toString();
 
             sb.setLength(0);
@@ -50,8 +51,8 @@ public class DataServiceImpl extends BaseServiceImpl<Data> implements DataServic
         return dataList;
     }
 
-    // 读取对象（测试用）
-    public List<Data> read(String filePath) {
+    // 解析数据（测试用）
+    public List<Data> parse(String filePath) {
         List<Data> dataList = new ArrayList<>();
         try {
             // 读取JSON文件为树结构
@@ -76,22 +77,19 @@ public class DataServiceImpl extends BaseServiceImpl<Data> implements DataServic
         return dataList;
     }
 
-    // 计算页面大小
-    public int calculatePageSize(Class<?> clazz) {
-        int cells = 12000; // 每页单元格数，即行数 × 列数
-        int fields = clazz.getDeclaredFields().length; // 列数
-        int pageSize = cells / fields; // 页面大小，即每页行数
-        return pageSize;
-    }
-
     // 查询总数
     public int countAll() {
         return dataMapper.countAll();
-    };
+    }
+
+    // 查询全表
+    public List<Data> findAll() {
+        return dataMapper.findAll();
+    }
 
     // 查询 n 条
-    public List<Data> findTopN(int n) {
-        return dataMapper.findTopN(n);
+    public List<Data> findRandomN(int count) {
+        return dataMapper.findRandomN(count);
     }
 
     // 单项查询
@@ -99,142 +97,103 @@ public class DataServiceImpl extends BaseServiceImpl<Data> implements DataServic
         return dataMapper.selectById(id);
     }
 
-    // 依次查询
-    public List<Data> selectById(String... ids) {
-        List<Data> result = new ArrayList<>();
-        for(String id : ids){
-            List<Data> subResult = dataMapper.selectById(id);
-            result.addAll(subResult);
-        }
-        return result;
+    // 逐项查询
+    public List<Data> selectByIds(String... ids) {
+        return mapEach(Arrays.asList(ids), dataMapper::selectById);
     }
 
-    // 批量查询
+    // 单批查询
     public List<Data> selectBatchByIds(List<String> ids) {
         return dataMapper.selectBatchByIds(ids);
     }
 
-    // 分页查询
-    public List<Data> selectPageByIds(List<String> ids) {
-        int pageSize = calculatePageSize(Data.class);
-        return mapPage(ids, pageSize, dataMapper::selectBatchByIds);
+    // 分批查询
+    public List<Data> selectBatchByIds(List<String> ids, int batchSize) {
+        return mapBatch(ids, batchSize, dataMapper::selectBatchByIds);
     }
 
     // 单项插入
     public int insert(Data data) {
-        int affectedRows = dataMapper.insert(data);
-        return affectedRows;
+        return dataMapper.insert(data);
     }
 
-    // 依次插入
+    // 逐项插入
     public int insert(Data... dataArray) {
-        int affectedRows = 0;
-        for(Data data : dataArray){
-            affectedRows += dataMapper.insert(data);
-        }
-        return affectedRows;
+        return reduceEach(Arrays.asList(dataArray), dataMapper::insert);
     }
 
-    // 批量插入
+    // 单批插入
     public int insertBatch(List<Data> dataList) {
-        int affectedRows = dataMapper.insertBatch(dataList);
-        return affectedRows;
+        return dataMapper.insertBatch(dataList);
     }
 
-    // 分页插入
-    public int insertPage(List<Data> dataList) {
-        int pageSize = calculatePageSize(Data.class);
-        int affectedRows = reducePage(dataList, pageSize, dataMapper::insertBatch);
-        return affectedRows;
+    // 分批插入
+    public int insertBatch(List<Data> dataList, int batchSize) {
+        return reduceBatch(dataList, batchSize, dataMapper::insertBatch);
     }
 
     // 单项更新
     public int update(Data data) {
-        int affectedRows = dataMapper.update(data);
-        return affectedRows;
+        return dataMapper.update(data);
     }
 
-    // 依次更新
+    // 逐项更新
     public int update(Data... dataArray) {
-        int affectedRows = 0;
-        for(Data data : dataArray){
-            affectedRows += dataMapper.update(data);
-        }
-        return affectedRows;
+        return reduceEach(Arrays.asList(dataArray), dataMapper::update);
     }
 
-    // 批量更新
+    // 单批更新
     public int updateBatch(List<Data> dataList) {
-        int affectedRows = dataMapper.updateBatch(dataList);
-        return affectedRows;
+        return dataMapper.updateBatch(dataList);
     }
 
-    // 分页更新
-    public int updatePage(List<Data> dataList) {
-        int pageSize = calculatePageSize(Data.class);
-        int affectedRows = reducePage(dataList, pageSize, dataMapper::updateBatch);
-        return affectedRows;
+    // 分批更新
+    public int updateBatch(List<Data> dataList, int batchSize) {
+        return reduceBatch(dataList, batchSize, dataMapper::updateBatch);
     }
 
     // 单项插入或更新
     public int upsert(Data data) {
-        int affectedRows = dataMapper.upsert(data);
-        return affectedRows;
+        return dataMapper.upsert(data);
     }
 
-    // 依次插入或更新
+    // 逐项插入或更新
     public int upsert(Data... dataArray) {
-        int affectedRows = 0;
-        for(Data data : dataArray){
-            affectedRows += dataMapper.upsert(data);
-        }
-        return affectedRows;
+        return reduceEach(Arrays.asList(dataArray), dataMapper::upsert);
     }
 
-    // 批量插入或更新
+    // 单批插入或更新
     public int upsertBatch(List<Data> dataList) {
-        int affectedRows = dataMapper.upsertBatch(dataList);
-        return affectedRows;
+        return dataMapper.upsertBatch(dataList);
     }
 
-    // 分页插入或更新
-    public int upsertPage(List<Data> dataList) {
-        int pageSize = calculatePageSize(Data.class);
-        int affectedRows = reducePage(dataList, pageSize, dataMapper::upsertBatch);
-        return affectedRows;
+    // 分批插入或更新
+    public int upsertBatch(List<Data> dataList, int batchSize) {
+        return reduceBatch(dataList, batchSize, dataMapper::upsertBatch);
     }
 
     // 单项删除
     public int deleteById(String id) {
-        int affectedRows = dataMapper.deleteById(id);
-        return affectedRows;
+        return dataMapper.deleteById(id);
     }
 
-    // 依次删除
-    public int deleteById(String... idArray) {
-        int affectedRows = 0;
-        for(String id : idArray){
-            affectedRows += dataMapper.deleteById(id);
-        }
-        return affectedRows;
+    // 逐项删除
+    public int deleteByIds(String... ids) {
+        return reduceEach(Arrays.asList(ids), dataMapper::deleteById);
     }
 
-    // 批量删除
+    // 单批删除
     public int deleteBatchByIds(List<String> ids) {
-        int affectedRows = dataMapper.deleteBatchByIds(ids);
-        return affectedRows;
+        return dataMapper.deleteBatchByIds(ids);
     }
 
-    // 分页删除
-    public int deletePageByIds(List<String> ids) {
-        int pageSize = calculatePageSize(Data.class);
-        int affectedRows = reducePage(ids, pageSize, dataMapper::deleteBatchByIds);
-        return affectedRows;
+    // 分批删除
+    public int deleteBatchByIds(List<String> ids, int batchSize) {
+        return reduceBatch(ids, batchSize, dataMapper::deleteBatchByIds);
     }
 
     // 清空
-    public void truncate(){
+    public void truncate() {
         dataMapper.truncate();
-        return ;
     }
 }
