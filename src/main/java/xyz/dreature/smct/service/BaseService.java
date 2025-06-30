@@ -1,4 +1,4 @@
-package dreature.smct.service;
+package xyz.dreature.smct.service;
 
 public interface BaseService<T> {
 }

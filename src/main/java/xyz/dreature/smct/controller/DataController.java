@@ -1,13 +1,13 @@
-package dreature.smct.controller;
+package xyz.dreature.smct.controller;
 
-import dreature.smct.common.vo.Result;
-import dreature.smct.entity.Data;
-import dreature.smct.service.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import xyz.dreature.smct.common.vo.Result;
+import xyz.dreature.smct.entity.Data;
+import xyz.dreature.smct.service.DataService;
 
 import java.util.ArrayList;
 import java.util.Arrays;

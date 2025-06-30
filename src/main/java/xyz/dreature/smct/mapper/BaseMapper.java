@@ -1,4 +1,4 @@
-package dreature.smct.mapper;
+package xyz.dreature.smct.mapper;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ public interface BaseMapper<T> {
     // 查询全表
     List<T> findAll();
 
-    // 查询 count 条
+    // 查询 n 条
     List<T> findRandomN(int count);
 
     // 单项查询

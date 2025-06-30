@@ -1,6 +1,6 @@
-package dreature.smct.service;
+package xyz.dreature.smct.service;
 
-import dreature.smct.entity.Data;
+import xyz.dreature.smct.entity.Data;
 
 import java.util.List;
 

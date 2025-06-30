@@ -1,4 +1,4 @@
-package dreature.smct.entity;
+package xyz.dreature.smct.entity;
 
 public class Data {
     // 属性

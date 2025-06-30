@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="dreature.smct.mapper.DataMapper">
+<mapper namespace="xyz.dreature.smct.mapper.DataMapper">
 
     <!-- 表和类映射关系 -->
     <resultMap id="dataMap" type="Data">
@@ -60,7 +60,7 @@
         LIMIT #{count}
     </select>
 
-    <!-- 逐项查询 -->
+    <!-- 单项查询 -->
     <select id="selectById" parameterType="String" resultMap="dataMap">
         SELECT
         <include refid="columns"/>
@@ -69,7 +69,7 @@
         WHERE `id` = #{id}
     </select>
 
-    <!-- 批量查询 -->
+    <!-- 单批查询 -->
     <select id="selectBatchByIds" resultMap="dataMap">
         SELECT
         <include refid="columns"/>
@@ -81,7 +81,7 @@
         </foreach>
     </select>
 
-    <!-- 逐项插入 -->
+    <!-- 单项插入 -->
     <insert id="insert" parameterType="Data">
         INSERT INTO
         <include refid="table"/>
@@ -89,7 +89,7 @@
         VALUES (<include refid="values"/>)
     </insert>
 
-    <!-- 批量插入 -->
+    <!-- 单批插入 -->
     <insert id="insertBatch" parameterType="java.util.List">
         INSERT INTO
         <include refid="table"/>
@@ -100,7 +100,7 @@
         </foreach>
     </insert>
 
-    <!-- 逐项更新 -->
+    <!-- 单项更新 -->
     <update id="update" parameterType="Data">
         UPDATE
         <include refid="table"/>
@@ -109,7 +109,7 @@
         WHERE `id` = #{id}
     </update>
 
-    <!-- 批量更新 -->
+    <!-- 单批更新 -->
     <update id="updateBatch" parameterType="java.util.List">
         UPDATE
         <include refid="table"/>
@@ -137,7 +137,7 @@
         </foreach>
     </update>
 
-    <!-- 逐项插入或更新 -->
+    <!-- 单项插入或更新 -->
     <insert id="upsert" parameterType="Data">
         INSERT INTO
         <include refid="table"/>
@@ -147,7 +147,7 @@
         <include refid="conflictSet"/>
     </insert>
 
-    <!-- 批量插入或更新 -->
+    <!-- 单批插入或更新 -->
     <insert id="upsertBatch" parameterType="java.util.List">
         INSERT INTO
         <include refid="table"/>
@@ -160,14 +160,14 @@
         <include refid="conflictSet"/>
     </insert>
 
-    <!-- 逐项删除 -->
+    <!-- 单项删除 -->
     <delete id="deleteById" parameterType="String">
         DELETE FROM
         <include refid="table"/>
         WHERE `id` = #{id}
     </delete>
 
-    <!-- 批量删除 -->
+    <!-- 单批删除 -->
     <delete id="deleteBatchByIds" parameterType="java.util.List">
         DELETE FROM
         <include refid="table"/>
@@ -182,6 +182,5 @@
         TRUNCATE TABLE
         <include refid="table"/>
     </update>
-
 
 </mapper>

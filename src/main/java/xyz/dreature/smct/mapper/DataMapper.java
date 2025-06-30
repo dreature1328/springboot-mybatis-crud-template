@@ -1,7 +1,7 @@
-package dreature.smct.mapper;
+package xyz.dreature.smct.mapper;
 
-import dreature.smct.entity.Data;
 import org.apache.ibatis.annotations.Mapper;
+import xyz.dreature.smct.entity.Data;
 
 @Mapper
 public interface DataMapper extends BaseMapper<Data> {

@@ -1,4 +1,4 @@
-package dreature.smct.common.util;
+package xyz.dreature.smct.common.util;
 
 import java.util.ArrayList;
 import java.util.List;

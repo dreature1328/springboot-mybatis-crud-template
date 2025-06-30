@@ -1,4 +1,4 @@
-package dreature.smct.common.vo;
+package xyz.dreature.smct.common.vo;
 
 import java.io.Serializable;
 

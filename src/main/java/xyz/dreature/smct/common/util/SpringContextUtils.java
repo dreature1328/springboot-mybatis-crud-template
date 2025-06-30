@@ -1,4 +1,4 @@
-package dreature.smct.common.util;
+package xyz.dreature.smct.common.util;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

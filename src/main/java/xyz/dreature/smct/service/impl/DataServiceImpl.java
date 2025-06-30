@@ -1,11 +1,9 @@
-package dreature.smct.service.impl;
+package xyz.dreature.smct.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import dreature.smct.entity.Data;
-import dreature.smct.mapper.DataMapper;
-import dreature.smct.service.DataService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import xyz.dreature.smct.entity.Data;
+import xyz.dreature.smct.service.DataService;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,12 +13,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static dreature.smct.common.util.BatchUtils.*;
+import static xyz.dreature.smct.common.util.BatchUtils.*;
 
 @Service
 public class DataServiceImpl extends BaseServiceImpl<Data> implements DataService {
-    @Autowired
-    private DataMapper dataMapper;
 
     // 生成数据（测试用）
     public List<Data> generate(int count) {
@@ -79,121 +75,121 @@ public class DataServiceImpl extends BaseServiceImpl<Data> implements DataServic
 
     // 查询总数
     public int countAll() {
-        return dataMapper.countAll();
+        return baseMapper.countAll();
     }
 
     // 查询全表
     public List<Data> findAll() {
-        return dataMapper.findAll();
+        return baseMapper.findAll();
     }
 
     // 查询 n 条
     public List<Data> findRandomN(int count) {
-        return dataMapper.findRandomN(count);
+        return baseMapper.findRandomN(count);
     }
 
     // 单项查询
     public List<Data> selectById(String id) {
-        return dataMapper.selectById(id);
+        return baseMapper.selectById(id);
     }
 
     // 逐项查询
     public List<Data> selectByIds(String... ids) {
-        return mapEach(Arrays.asList(ids), dataMapper::selectById);
+        return mapEach(Arrays.asList(ids), baseMapper::selectById);
     }
 
     // 单批查询
     public List<Data> selectBatchByIds(List<String> ids) {
-        return dataMapper.selectBatchByIds(ids);
+        return baseMapper.selectBatchByIds(ids);
     }
 
     // 分批查询
     public List<Data> selectBatchByIds(List<String> ids, int batchSize) {
-        return mapBatch(ids, batchSize, dataMapper::selectBatchByIds);
+        return mapBatch(ids, batchSize, baseMapper::selectBatchByIds);
     }
 
     // 单项插入
     public int insert(Data data) {
-        return dataMapper.insert(data);
+        return baseMapper.insert(data);
     }
 
     // 逐项插入
     public int insert(Data... dataArray) {
-        return reduceEach(Arrays.asList(dataArray), dataMapper::insert);
+        return reduceEach(Arrays.asList(dataArray), baseMapper::insert);
     }
 
     // 单批插入
     public int insertBatch(List<Data> dataList) {
-        return dataMapper.insertBatch(dataList);
+        return baseMapper.insertBatch(dataList);
     }
 
     // 分批插入
     public int insertBatch(List<Data> dataList, int batchSize) {
-        return reduceBatch(dataList, batchSize, dataMapper::insertBatch);
+        return reduceBatch(dataList, batchSize, baseMapper::insertBatch);
     }
 
     // 单项更新
     public int update(Data data) {
-        return dataMapper.update(data);
+        return baseMapper.update(data);
     }
 
     // 逐项更新
     public int update(Data... dataArray) {
-        return reduceEach(Arrays.asList(dataArray), dataMapper::update);
+        return reduceEach(Arrays.asList(dataArray), baseMapper::update);
     }
 
     // 单批更新
     public int updateBatch(List<Data> dataList) {
-        return dataMapper.updateBatch(dataList);
+        return baseMapper.updateBatch(dataList);
     }
 
     // 分批更新
     public int updateBatch(List<Data> dataList, int batchSize) {
-        return reduceBatch(dataList, batchSize, dataMapper::updateBatch);
+        return reduceBatch(dataList, batchSize, baseMapper::updateBatch);
     }
 
     // 单项插入或更新
     public int upsert(Data data) {
-        return dataMapper.upsert(data);
+        return baseMapper.upsert(data);
     }
 
     // 逐项插入或更新
     public int upsert(Data... dataArray) {
-        return reduceEach(Arrays.asList(dataArray), dataMapper::upsert);
+        return reduceEach(Arrays.asList(dataArray), baseMapper::upsert);
     }
 
     // 单批插入或更新
     public int upsertBatch(List<Data> dataList) {
-        return dataMapper.upsertBatch(dataList);
+        return baseMapper.upsertBatch(dataList);
     }
 
     // 分批插入或更新
     public int upsertBatch(List<Data> dataList, int batchSize) {
-        return reduceBatch(dataList, batchSize, dataMapper::upsertBatch);
+        return reduceBatch(dataList, batchSize, baseMapper::upsertBatch);
     }
 
     // 单项删除
     public int deleteById(String id) {
-        return dataMapper.deleteById(id);
+        return baseMapper.deleteById(id);
     }
 
     // 逐项删除
     public int deleteByIds(String... ids) {
-        return reduceEach(Arrays.asList(ids), dataMapper::deleteById);
+        return reduceEach(Arrays.asList(ids), baseMapper::deleteById);
     }
 
     // 单批删除
     public int deleteBatchByIds(List<String> ids) {
-        return dataMapper.deleteBatchByIds(ids);
+        return baseMapper.deleteBatchByIds(ids);
     }
 
     // 分批删除
     public int deleteBatchByIds(List<String> ids, int batchSize) {
-        return reduceBatch(ids, batchSize, dataMapper::deleteBatchByIds);
+        return reduceBatch(ids, batchSize, baseMapper::deleteBatchByIds);
     }
 
     // 清空
     public void truncate() {
-        dataMapper.truncate();
+        baseMapper.truncate();
     }
 }
