@@ -1,47 +1,51 @@
 package xyz.dreature.smct.mapper;
 
+import java.io.Serializable;
 import java.util.List;
 
-public interface BaseMapper<T> {
+public interface BaseMapper<T, ID extends Serializable> {
     // 查询总数
-    public int countAll();
+    int countAll();
 
     // 查询全表
-    List<T> findAll();
+    List<T> selectAll();
 
-    // 查询 n 条
-    List<T> findRandomN(int count);
+    // 查询随机
+    List<T> selectRandom(int count);
+
+    // 查询页面
+    List<T> selectByPage(int offset, int limit);
 
     // 单项查询
-    public List<T> selectById(String id);
+    T selectById(ID id);
 
     // 单批查询
-    public List<T> selectBatchByIds(List<String> ids);
+    List<T> selectBatchByIds(List<ID> ids);
 
     // 单项插入
-    public int insert(T obj);
+    int insert(T obj);
 
     // 单批插入
-    public int insertBatch(List<T> list);
+    int insertBatch(List<T> list);
 
     // 单项更新
-    public int update(T obj);
+    int update(T obj);
 
     // 单批更新
-    public int updateBatch(List<T> list);
+    int updateBatch(List<T> list);
 
     // 单项插入或更新
-    public int upsert(T obj);
+    int upsert(T obj);
 
     // 单批插入或更新
-    public int upsertBatch(List<T> list);
+    int upsertBatch(List<T> list);
 
     // 单项删除
-    public int deleteById(String id);
+    int deleteById(ID id);
 
     // 单批删除
-    public int deleteBatchByIds(List<String> ids);
+    int deleteBatchByIds(List<ID> ids);
 
     // 清空
-    public void truncate();
+    void truncate();
 }

@@ -1,8 +1,10 @@
 package xyz.dreature.smct.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.params.shadow.com.univocity.parsers.common.DataProcessingException;
 import org.springframework.stereotype.Service;
-import xyz.dreature.smct.entity.Data;
+import xyz.dreature.smct.common.entity.Data;
 import xyz.dreature.smct.service.DataService;
 
 import java.io.File;
@@ -12,184 +14,93 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
-import static xyz.dreature.smct.common.util.BatchUtils.*;
+import java.util.stream.Collectors;
 
 @Service
-public class DataServiceImpl extends BaseServiceImpl<Data> implements DataService {
+public class DataServiceImpl extends BaseServiceImpl<Data, Long> implements DataService {
+    private ObjectMapper objectMapper = new ObjectMapper();
+    private SecureRandom random = new SecureRandom();
 
-    // 生成数据（测试用）
-    public List<Data> generate(int count) {
-        // 此处以 UUID 作为 ID，长度为 16 的随机字符串作为属性值为例
+    // 生成模拟数据
+    public List<Data> generateMockData(int count) {
         List<Data> dataList = new ArrayList<>(count);
-        String CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        SecureRandom random = new SecureRandom();
-        int length = 16;
 
-        StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < count; i++) {
-            String id = UUID.randomUUID().toString();
+            Data data = new Data();
 
-            sb.setLength(0);
-            for (int j = 0; j < length; j++) {
-                sb.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
-            }
-            String attr1 = sb.toString();
+            // 取 UUID 的高 64 位并转换为非负长整型值
+            data.setId(Math.abs(UUID.randomUUID().getMostSignificantBits()));
 
-            sb.setLength(0);
-            for (int j = 0; j < length; j++) {
-                sb.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
-            }
-            String attr2 = sb.toString();
+            // 取 0-10000 之间的随机整数
+            data.setNumericValue(random.nextInt(10001));
 
-            dataList.add(new Data(id, attr1, attr2));
+            // 取 0.0-100.0 之间的随机小数（保留两位）
+            data.setDecimalValue(Math.round(random.nextDouble() * 100 * 100.0) / 100.0);
+
+            // 取 16 位随机字符串（大小写字母及数字）
+            data.setTextContent(generateRandomString(16));
+
+            // 取随机布尔值
+            data.setActiveFlag(random.nextBoolean());
+
+            dataList.add(data);
         }
         return dataList;
     }
 
-    // 解析数据（测试用）
-    public List<Data> parse(String filePath) {
+    // 生成随机字符串
+    public String generateRandomString(int length) {
+        String CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        StringBuilder sb = new StringBuilder(length);
+
+        for (int i = 0; i < length; i++) {
+            sb.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+        return sb.toString();
+    }
+
+    // 解析 JSON 文件
+    public List<Data> parseDataFromJsonFile(String filePath) {
         List<Data> dataList = new ArrayList<>();
         try {
-            // 读取JSON文件为树结构
+            // 读取 JSON 文件为树结构
             JsonNode rootNode = objectMapper.readTree(new File(filePath));
             JsonNode arrayNode = rootNode.path("data");
 
-            // 检查data是否是数组
+            // 检查 "data" 键的值是否是数组
             if (arrayNode.isArray()) {
                 for (JsonNode jsonNode : arrayNode) {
-                    // 构建Data对象并添加到列表中
-                    Data data = new Data(
-                            jsonNode.path("id").asText(),
-                            jsonNode.path("key1").asText(),
-                            jsonNode.path("key2").asText()
-                    );
+                    Data data = new Data();
+
+                    // 解析并设置所有属性
+                    data.setId(jsonNode.get("id").asLong());
+                    data.setNumericValue(jsonNode.path("numericValue").asInt());
+                    data.setDecimalValue(jsonNode.path("decimalValue").asDouble());
+                    data.setTextContent(jsonNode.path("textContent").asText());
+                    data.setActiveFlag(jsonNode.path("activeFlag").asBoolean());
+
                     dataList.add(data);
                 }
             }
         } catch (IOException e) {
             System.err.println("读取 JSON 文件失败: " + e.getMessage());
+            throw new DataProcessingException("JSON 文件解析失败", e);
         }
         return dataList;
     }
 
-    // 查询总数
-    public int countAll() {
-        return baseMapper.countAll();
-    }
-
-    // 查询全表
-    public List<Data> findAll() {
-        return baseMapper.findAll();
-    }
-
-    // 查询 n 条
-    public List<Data> findRandomN(int count) {
-        return baseMapper.findRandomN(count);
-    }
-
-    // 单项查询
-    public List<Data> selectById(String id) {
-        return baseMapper.selectById(id);
-    }
-
-    // 逐项查询
-    public List<Data> selectByIds(String... ids) {
-        return mapEach(Arrays.asList(ids), baseMapper::selectById);
-    }
-
-    // 单批查询
-    public List<Data> selectBatchByIds(List<String> ids) {
-        return baseMapper.selectBatchByIds(ids);
-    }
-
-    // 分批查询
-    public List<Data> selectBatchByIds(List<String> ids, int batchSize) {
-        return mapBatch(ids, batchSize, baseMapper::selectBatchByIds);
-    }
-
-    // 单项插入
-    public int insert(Data data) {
-        return baseMapper.insert(data);
-    }
-
-    // 逐项插入
-    public int insert(Data... dataArray) {
-        return reduceEach(Arrays.asList(dataArray), baseMapper::insert);
-    }
-
-    // 单批插入
-    public int insertBatch(List<Data> dataList) {
-        return baseMapper.insertBatch(dataList);
-    }
-
-    // 分批插入
-    public int insertBatch(List<Data> dataList, int batchSize) {
-        return reduceBatch(dataList, batchSize, baseMapper::insertBatch);
-    }
-
-    // 单项更新
-    public int update(Data data) {
-        return baseMapper.update(data);
-    }
-
-    // 逐项更新
-    public int update(Data... dataArray) {
-        return reduceEach(Arrays.asList(dataArray), baseMapper::update);
-    }
-
-    // 单批更新
-    public int updateBatch(List<Data> dataList) {
-        return baseMapper.updateBatch(dataList);
-    }
-
-    // 分批更新
-    public int updateBatch(List<Data> dataList, int batchSize) {
-        return reduceBatch(dataList, batchSize, baseMapper::updateBatch);
-    }
-
-    // 单项插入或更新
-    public int upsert(Data data) {
-        return baseMapper.upsert(data);
-    }
-
-    // 逐项插入或更新
-    public int upsert(Data... dataArray) {
-        return reduceEach(Arrays.asList(dataArray), baseMapper::upsert);
-    }
-
-    // 单批插入或更新
-    public int upsertBatch(List<Data> dataList) {
-        return baseMapper.upsertBatch(dataList);
-    }
-
-    // 分批插入或更新
-    public int upsertBatch(List<Data> dataList, int batchSize) {
-        return reduceBatch(dataList, batchSize, baseMapper::upsertBatch);
-    }
-
-    // 单项删除
-    public int deleteById(String id) {
-        return baseMapper.deleteById(id);
-    }
-
-    // 逐项删除
-    public int deleteByIds(String... ids) {
-        return reduceEach(Arrays.asList(ids), baseMapper::deleteById);
-    }
-
-    // 单批删除
-    public int deleteBatchByIds(List<String> ids) {
-        return baseMapper.deleteBatchByIds(ids);
-    }
-
-    // 分批删除
-    public int deleteBatchByIds(List<String> ids, int batchSize) {
-        return reduceBatch(ids, batchSize, baseMapper::deleteBatchByIds);
-    }
-
-    // 清空
-    public void truncate() {
-        baseMapper.truncate();
+    // 解析 ID
+    public List<Long> parseIdsFromString(String ids) {
+        return Arrays.stream(ids.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(s -> {
+                    try {
+                        return Long.parseLong(s);
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException("无效的 ID 格式: " + s);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 }

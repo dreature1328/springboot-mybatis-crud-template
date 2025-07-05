@@ -8,42 +8,65 @@ import java.util.function.ToIntFunction;
 
 public class BatchUtils {
     // 逐项处理（无返回值）
-    public static <T> void processEach(List<T> list, Consumer<T> processor) {
-        if (list == null || list.isEmpty()) return;
-        for (T item : list) {
+    public static <T> void processEach(Iterable<T> iterable, Consumer<T> processor) {
+        if (iterable == null) return;
+
+        for (T item : iterable) {
             processor.accept(item);
         }
     }
 
-    // 逐项处理（整数聚合）
-    public static <T> int reduceEach(List<T> list, ToIntFunction<T> mapper) {
+    // 逐项聚合（返回整数）
+    public static <T> int reduceEachToInt(Iterable<T> iterable, ToIntFunction<T> mapper) {
+        if (iterable == null) return 0;
+
         int result = 0;
-        for (T item : list) {
+        for (T item : iterable) {
             result += mapper.applyAsInt(item);
         }
         return result;
     }
 
-    // 逐项处理（对象生成）
-    public static <T, R> List<R> mapEach(List<T> list, Function<T, List<R>> mapper) {
+    // 逐项映射（对象列表）
+    public static <T, R> List<R> mapEach(Iterable<T> iterable, Function<T, R> mapper) {
+        if (iterable == null) return new ArrayList<>();
+
         List<R> result = new ArrayList<>();
-        for (T item : list) {
-            result.addAll(mapper.apply(item));
+        for (T item : iterable) {
+            result.add(mapper.apply(item));
+        }
+        return result;
+    }
+
+    // 逐项映射（扁平化列表）
+    public static <T, R> List<R> flatMapEach(Iterable<T> iterable, Function<T, ? extends Iterable<? extends R>> mapper) {
+        if (iterable == null) return new ArrayList<>();
+
+        List<R> result = new ArrayList<>();
+        for (T item : iterable) {
+            Iterable<? extends R> elements = mapper.apply(item);
+            if (elements != null) {
+                for (R element : elements) {
+                    result.add(element);
+                }
+            }
         }
         return result;
     }
 
     // 分批处理（无返回值）
     public static <T> void processBatch(List<T> list, int batchSize, Consumer<List<T>> processor) {
-        while (!list.isEmpty()) {
-            List<T> subList = list.subList(0, Math.min(batchSize, list.size()));
-            processor.accept(subList);
-            list.subList(0, subList.size()).clear();
-        }
+        if (list == null) return;
+
+        List<T> subList = list.subList(0, Math.min(batchSize, list.size()));
+        processor.accept(subList);
+        list.subList(0, subList.size()).clear();
     }
 
-    // 分批处理（整数聚合）
-    public static <T> int reduceBatch(List<T> list, int batchSize, ToIntFunction<List<T>> mapper) {
+    // 分批聚合（返回整数）
+    public static <T> int reduceBatchToInt(List<T> list, int batchSize, ToIntFunction<List<T>> mapper) {
+        if (list == null) return 0;
+
         int result = 0;
         while (!list.isEmpty()) {
             List<T> subList = list.subList(0, Math.min(batchSize, list.size()));
@@ -54,13 +77,31 @@ public class BatchUtils {
         return result;
     }
 
-    // 分批处理（对象生成）
-    public static <T, R> List<R> mapBatch(List<T> list, int batchSize, Function<List<T>, List<R>> mapper) {
+    // 分批映射（对象列表）
+    public static <T, R> List<R> mapBatch(List<T> list, int batchSize, Function<List<T>, R> mapper) {
+        if (list == null) return new ArrayList<>();
+
+        List<R> result = new ArrayList<>();
+        while (!list.isEmpty()) {
+            List<T> subList = list.subList(0, Math.min(batchSize, list.size()));
+            R subResult = mapper.apply(subList);
+            result.add(subResult);
+            list.subList(0, subList.size()).clear();
+        }
+        return result;
+    }
+
+    // 分批映射（扁平化列表）
+    public static <T, R> List<R> flatMapBatch(List<T> list, int batchSize, Function<List<T>, List<R>> mapper) {
+        if (list == null) return new ArrayList<>();
+
         List<R> result = new ArrayList<>();
         while (!list.isEmpty()) {
             List<T> subList = list.subList(0, Math.min(batchSize, list.size()));
             List<R> subResult = mapper.apply(subList);
-            result.addAll(subResult);
+            if (subResult != null) {
+                result.addAll(subResult);
+            }
             list.subList(0, subList.size()).clear();
         }
         return result;
