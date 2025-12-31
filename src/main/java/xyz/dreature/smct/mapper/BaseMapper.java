@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public interface BaseMapper<T, ID extends Serializable> {
+    // ===== 查询基础操作 =====
     // 查询总数
     int countAll();
 
@@ -22,30 +23,35 @@ public interface BaseMapper<T, ID extends Serializable> {
     // 单批查询
     List<T> selectBatchByIds(List<ID> ids);
 
+    // ===== 插入基础操作 =====
     // 单项插入
-    int insert(T obj);
+    int insert(T entity);
 
     // 单批插入
-    int insertBatch(List<T> list);
+    int insertBatch(List<T> entities);
 
+    // ===== 更新基础操作 =====
     // 单项更新
-    int update(T obj);
+    int update(T entity);
 
     // 单批更新
-    int updateBatch(List<T> list);
+    int updateBatch(List<T> entities);
 
+    // ===== 插入或更新基础操作 =====
     // 单项插入或更新
-    int upsert(T obj);
+    int upsert(T entity);
 
     // 单批插入或更新
-    int upsertBatch(List<T> list);
+    int upsertBatch(List<T> entities);
 
+    // ===== 删除基础操作 =====
     // 单项删除
     int deleteById(ID id);
 
     // 单批删除
     int deleteBatchByIds(List<ID> ids);
 
+    // ===== 其他操作 =====
     // 清空
     void truncate();
 }

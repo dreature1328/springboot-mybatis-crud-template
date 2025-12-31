@@ -3,8 +3,9 @@ package xyz.dreature.smct.common.vo;
 import java.io.Serializable;
 import java.time.Instant;
 
+// 响应结果
 public class Result<T> implements Serializable {
-    // ===== 属性 =====
+    // ===== 字段 =====
     private boolean success; // 操作是否成功
     private String code;     // 业务状态码
     private String message;  // 人类可读消息

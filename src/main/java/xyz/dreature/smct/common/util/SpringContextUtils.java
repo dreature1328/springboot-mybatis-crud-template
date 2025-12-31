@@ -4,7 +4,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-// 该工具类是固定写法，用于让其它普通类可以调用Service层的服务
+// 该工具类是固定写法，用于让其它普通类可以调用 Service 层的服务
 public class SpringContextUtils implements ApplicationContextAware {
     // 在普通类可以通过调用 SpringUtils.getAppContext() 获取 applicationContext 对象
     private static ApplicationContext applicationContext = null;
@@ -37,7 +37,5 @@ public class SpringContextUtils implements ApplicationContextAware {
     public static <T> T getBean(String name, Class<T> clazz) {
         return getApplicationContext().getBean(name, clazz);
     }
-
-
 }
 

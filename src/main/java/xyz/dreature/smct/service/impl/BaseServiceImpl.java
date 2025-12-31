@@ -1,8 +1,8 @@
 package xyz.dreature.smct.service.impl;
 
-import org.apache.ibatis.session.SqlSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.dreature.smct.common.util.BatchUtils;
 import xyz.dreature.smct.mapper.BaseMapper;
 import xyz.dreature.smct.service.BaseService;
@@ -11,135 +11,208 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
-@Service
+@Slf4j
+@Transactional
 public abstract class BaseServiceImpl<T, ID extends Serializable> implements BaseService<T, ID> {
-    @Autowired
-    protected SqlSession sqlSession;
-    @Autowired
-    protected BaseMapper<T, ID> baseMapper;
+    protected BaseMapper<T, ID> mapper;
 
+    public BaseServiceImpl(BaseMapper<T, ID> mapper) {
+        this.mapper = mapper;
+    }
+
+    // ===== 查询基础操作 =====
     // 查询总数
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public int countAll() {
-        return baseMapper.countAll();
+        return mapper.countAll();
     }
 
     // 查询全表
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public List<T> selectAll() {
-        return baseMapper.selectAll();
+        return mapper.selectAll();
     }
 
     // 查询随机
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public List<T> selectRandom(int count) {
-        return baseMapper.selectRandom(count);
+        return mapper.selectRandom(count);
     }
 
     // 查询页面
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public List<T> selectByPage(int offset, int limit) {
-        return baseMapper.selectByPage(offset, limit);
+        return mapper.selectByPage(offset, limit);
     }
 
     // 单项查询
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public T selectById(ID id) {
-        return baseMapper.selectById(id);
+        return mapper.selectById(id);
     }
 
     // 逐项查询
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public List<T> selectByIds(ID... ids) {
-        return BatchUtils.mapEach(Arrays.asList(ids), baseMapper::selectById);
+        return BatchUtils.mapEach(Arrays.asList(ids), mapper::selectById);
+    }
+
+    // 逐项查询
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public List<T> selectByIds(List<ID> ids) {
+        return BatchUtils.mapEach(ids, mapper::selectById);
     }
 
     // 单批查询
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public List<T> selectBatchByIds(List<ID> ids) {
-        return baseMapper.selectBatchByIds(ids);
+        return mapper.selectBatchByIds(ids);
     }
 
     // 分批查询
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public List<T> selectBatchByIds(List<ID> ids, int batchSize) {
-        return BatchUtils.flatMapBatch(ids, batchSize, baseMapper::selectBatchByIds);
+        return BatchUtils.flatMapBatch(ids, batchSize, mapper::selectBatchByIds);
     }
 
+    // ===== 插入基础操作 =====
     // 单项插入
-    public int insert(T obj) {
-        return baseMapper.insert(obj);
+    @Override
+    public int insert(T entity) {
+        return mapper.insert(entity);
     }
 
     // 逐项插入
-    public int insert(T... array) {
-        return BatchUtils.reduceEachToInt(Arrays.asList(array), baseMapper::insert);
+    @Override
+    public int insert(T... entities) {
+        return BatchUtils.reduceEachToInt(Arrays.asList(entities), mapper::insert);
+    }
+
+    // 逐项插入
+    @Override
+    public int insert(List<T> entities) {
+        return BatchUtils.reduceEachToInt(entities, mapper::insert);
     }
 
     // 单批插入
-    public int insertBatch(List<T> list) {
-        return baseMapper.insertBatch(list);
+    @Override
+    public int insertBatch(List<T> entities) {
+        return mapper.insertBatch(entities);
     }
 
     // 分批插入
-    public int insertBatch(List<T> list, int batchSize) {
-        return BatchUtils.reduceBatchToInt(list, batchSize, baseMapper::insertBatch);
+    @Override
+    public int insertBatch(List<T> entities, int batchSize) {
+        return BatchUtils.reduceBatchToInt(entities, batchSize, mapper::insertBatch);
     }
 
+    // ===== 更新基础操作 =====
     // 单项更新
-    public int update(T obj) {
-        return baseMapper.update(obj);
+    @Override
+    public int update(T entity) {
+        return mapper.update(entity);
     }
 
     // 逐项更新
-    public int update(T... array) {
-        return BatchUtils.reduceEachToInt(Arrays.asList(array), baseMapper::update);
+    @Override
+    public int update(T... entities) {
+        return BatchUtils.reduceEachToInt(Arrays.asList(entities), mapper::update);
+    }
+
+    // 逐项更新
+    @Override
+    public int update(List<T> entities) {
+        return BatchUtils.reduceEachToInt(entities, mapper::update);
     }
 
     // 单批更新
-    public int updateBatch(List<T> list) {
-        return baseMapper.updateBatch(list);
+    @Override
+    public int updateBatch(List<T> entities) {
+        return mapper.updateBatch(entities);
     }
 
     // 分批更新
-    public int updateBatch(List<T> list, int batchSize) {
-        return BatchUtils.reduceBatchToInt(list, batchSize, baseMapper::updateBatch);
+    @Override
+    public int updateBatch(List<T> entities, int batchSize) {
+        return BatchUtils.reduceBatchToInt(entities, batchSize, mapper::updateBatch);
     }
 
+    // ===== 插入或更新基础操作 =====
     // 单项插入或更新
-    public int upsert(T obj) {
-        return baseMapper.upsert(obj);
+    @Override
+    public int upsert(T entity) {
+        return mapper.upsert(entity);
     }
 
     // 逐项插入或更新
-    public int upsert(T... array) {
-        return BatchUtils.reduceEachToInt(Arrays.asList(array), baseMapper::upsert);
+    @Override
+    public int upsert(T... entities) {
+        return BatchUtils.reduceEachToInt(Arrays.asList(entities), mapper::upsert);
+    }
+
+    // 逐项插入或更新
+    @Override
+    public int upsert(List<T> entities) {
+        return BatchUtils.reduceEachToInt(entities, mapper::upsert);
     }
 
     // 单批插入或更新
-    public int upsertBatch(List<T> list) {
-        return baseMapper.upsertBatch(list);
+    @Override
+    public int upsertBatch(List<T> entities) {
+        return mapper.upsertBatch(entities);
     }
 
     // 分批插入或更新
-    public int upsertBatch(List<T> list, int batchSize) {
-        return BatchUtils.reduceBatchToInt(list, batchSize, baseMapper::upsertBatch);
+    @Override
+    public int upsertBatch(List<T> entities, int batchSize) {
+        return BatchUtils.reduceBatchToInt(entities, batchSize, mapper::upsertBatch);
     }
 
+    // ===== 删除基础操作 =====
     // 单项删除
+    @Override
     public int deleteById(ID id) {
-        return baseMapper.deleteById(id);
+        return mapper.deleteById(id);
     }
 
     // 逐项删除
+    @Override
     public int deleteByIds(ID... ids) {
-        return BatchUtils.reduceEachToInt(Arrays.asList(ids), baseMapper::deleteById);
+        return BatchUtils.reduceEachToInt(Arrays.asList(ids), mapper::deleteById);
+    }
+
+    // 逐项删除
+    @Override
+    public int deleteByIds(List<ID> ids) {
+        return BatchUtils.reduceEachToInt(ids, mapper::deleteById);
     }
 
     // 单批删除
+    @Override
     public int deleteBatchByIds(List<ID> ids) {
-        return baseMapper.deleteBatchByIds(ids);
+        return mapper.deleteBatchByIds(ids);
     }
 
     // 分批删除
+    @Override
     public int deleteBatchByIds(List<ID> ids, int batchSize) {
-        return BatchUtils.reduceBatchToInt(ids, batchSize, baseMapper::deleteBatchByIds);
+        return BatchUtils.reduceBatchToInt(ids, batchSize, mapper::deleteBatchByIds);
     }
 
+    // ===== 其他操作 =====
     // 清空
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void truncate() {
-        baseMapper.truncate();
+        mapper.truncate();
     }
 }

@@ -1,7 +1,8 @@
 package xyz.dreature.smct.common.entity;
 
+// 数据实体
 public class Data {
-    // ===== 属性 =====
+    // ===== 字段 =====
     private Long id;              // 唯一标识符
     private Integer numericValue; // 整型数值
     private Double decimalValue;  // 浮点数值
