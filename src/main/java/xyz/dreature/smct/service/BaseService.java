@@ -1,9 +1,13 @@
 package xyz.dreature.smct.service;
 
+import org.apache.ibatis.cursor.Cursor;
+import xyz.dreature.smct.mapper.base.BaseMapper;
+
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
-public interface BaseService<T, ID extends Serializable> {
+public interface BaseService<T, ID extends Serializable, M extends BaseMapper<T, ID>> {
     // ===== 查询基础操作 =====
     // 查询总数
     int countAll();
@@ -11,11 +15,17 @@ public interface BaseService<T, ID extends Serializable> {
     // 查询全表
     List<T> selectAll();
 
+    // 查询全表（游标）
+    Cursor<T> selectAllWithCursor();
+
     // 查询随机
-    List<T> selectRandom(int count);
+    List<T> selectRandom(int limit);
 
     // 查询页面
     List<T> selectByPage(int offset, int limit);
+
+    // 条件查询
+    List<T> selectByCondition(Map<String, Object> condition);
 
     // 单项查询
     T selectById(ID id);
@@ -99,11 +109,4 @@ public interface BaseService<T, ID extends Serializable> {
     // ===== 其他操作 =====
     // 清空
     void truncate();
-
-    // ====== 业务扩展操作 =====
-    // 生成模拟数据
-    List<T> generateMock(int count);
-
-    // 解析 JSON 文件
-    List<T> parseFromJsonFile(String filePath);
 }

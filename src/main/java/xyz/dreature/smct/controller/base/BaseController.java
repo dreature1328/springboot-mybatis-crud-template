@@ -1,35 +1,39 @@
-package xyz.dreature.smct.controller;
+package xyz.dreature.smct.controller.base;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.text.StrSplitter;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.TypeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import xyz.dreature.smct.common.util.IdUtils;
 import xyz.dreature.smct.common.vo.Result;
 import xyz.dreature.smct.service.BaseService;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Positive;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Map;
 
 // 基接口
 @Slf4j
 @Validated
-public abstract class BaseController<T, ID extends Serializable> {
-    protected BaseService<T, ID> service;
-    protected Function<String, ID> idParser;
+public abstract class BaseController<T, ID extends Serializable, S extends BaseService<T, ID, ?>> {
+    protected final S service;
+    protected final Class<T> entityClass;
+    protected final Class<ID> idClass;
     @Value("${app.file.path}")
     protected String filePath;
 
-    public BaseController(BaseService<T, ID> service, Function<String, ID> idParser) {
+    public BaseController(S service) {
         this.service = service;
-        this.idParser = idParser;
+        this.entityClass = (Class<T>) TypeUtil.getTypeArgument(this.getClass(), 0);
+        this.idClass = (Class<ID>) TypeUtil.getTypeArgument(this.getClass(), 1);
     }
 
     // ===== 查询基础操作 =====
@@ -55,11 +59,11 @@ public abstract class BaseController<T, ID extends Serializable> {
     // 查询随机
     @RequestMapping("/select-random")
     public ResponseEntity<Result<List<T>>> selectRandom(
-            @RequestParam(name = "count", defaultValue = "1")
+            @RequestParam(name = "limit", defaultValue = "10")
             @Positive(message = "条数必须为正")
-            int count
+            int limit
     ) {
-        List<T> result = service.selectRandom(count);
+        List<T> result = service.selectRandom(limit);
         int resultCount = result.size();
         String message = String.format("随机查询 %d 条数据", resultCount);
         log.info("随机查询完成，条数：{}", resultCount);
@@ -80,7 +84,21 @@ public abstract class BaseController<T, ID extends Serializable> {
         List<T> result = service.selectByPage(offset, limit);
         int resultCount = result.size();
         String message = String.format("页面查询 %d 条数据", resultCount);
-        log.info("页面查询完成，条数:{}", resultCount);
+        log.info("页面查询完成，条数：{}", resultCount);
+        return ResponseEntity.ok().body(Result.success(message, result));
+    }
+
+    // 条件查询
+    @RequestMapping("/select-by-condition")
+    public ResponseEntity<Result<List<T>>> selectByCondition(
+            @RequestBody
+            @NotEmpty(message = "查询条件不能为空")
+            Map<String, Object> condition
+    ) {
+        List<T> result = service.selectByCondition(condition);
+        int resultCount = result.size();
+        String message = String.format("条件查询 %d 条数据", resultCount);
+        log.info("条件查询完成，条数：{}", resultCount);
         return ResponseEntity.ok().body(Result.success(message, result));
     }
 
@@ -92,10 +110,12 @@ public abstract class BaseController<T, ID extends Serializable> {
             @Pattern(regexp = "^\\d+(,\\d+)*$", message = "ID 需由逗号分隔")
             String ids
     ) {
-        List<T> result = service.selectByIds(IdUtils.parseIds(ids, idParser));
+        List<ID> idList = Convert.toList(idClass, StrSplitter.split(ids, ',', 0, true, false));
+
+        List<T> result = service.selectByIds(idList);
         int resultCount = result.size();
         String message = String.format("逐项查询 %d 条数据", resultCount);
-        log.info("逐项查询完成，条数:{}", resultCount);
+        log.info("逐项查询完成，条数：{}", resultCount);
         return ResponseEntity.ok().body(Result.success(message, result));
     }
 
@@ -108,26 +128,28 @@ public abstract class BaseController<T, ID extends Serializable> {
             String ids,
 
             @RequestParam(name = "batch-size", defaultValue = "1000")
-            @Min(value = 1, message = "批大小至少为 1")
+            @Positive(message = "批大小必须为正")
             int batchSize
     ) {
-        List<T> result = service.selectBatchByIds(IdUtils.parseIds(ids, idParser), batchSize);
+        List<ID> idList = Convert.toList(idClass, StrSplitter.split(ids, ',', 0, true, false));
+
+        List<T> result = service.selectBatchByIds(idList, batchSize);
         int resultCount = result.size();
         String message = String.format("分批查询 %d 条数据", resultCount);
         log.info("分批查询完成，条数：{}", resultCount);
         return ResponseEntity.ok().body(Result.success(message, result));
     }
 
-
     // ===== 插入基础操作 =====
     // 逐项插入
     @RequestMapping("/insert")
     public ResponseEntity<Result<Void>> insert(
-            @RequestParam(name = "total", defaultValue = "10")
-            @Min(value = 1, message = "总项数至少为 1")
-            int total
+            @RequestBody
+            @NotEmpty(message = "插入的数据不能为空")
+            @Valid
+            T[] entities
     ) {
-        int affectedRows = service.insert(service.generateMock(total));
+        int affectedRows = service.insert(entities);
         String message = String.format("逐项插入 %d 条数据", affectedRows);
         log.info("逐项插入完成，影响行数：{}", affectedRows);
         return ResponseEntity.ok().body(Result.success(message, null));
@@ -136,15 +158,16 @@ public abstract class BaseController<T, ID extends Serializable> {
     // 分批插入
     @RequestMapping("/insert-batch")
     public ResponseEntity<Result<Void>> insertBatch(
-            @RequestParam(name = "total", defaultValue = "1000")
-            @Min(value = 1, message = "总批数至少为 1")
-            int total,
+            @RequestBody
+            @NotEmpty(message = "插入的数据不能为空")
+            @Valid
+            List<T> entities,
 
             @RequestParam(name = "batch-size", defaultValue = "1000")
-            @Min(value = 1, message = "批大小至少为 1")
+            @Positive(message = "批大小必须为正")
             int batchSize
     ) {
-        int affectedRows = service.insertBatch(service.generateMock(total), batchSize);
+        int affectedRows = service.insertBatch(entities, batchSize);
         String message = String.format("分批插入 %d 条数据", affectedRows);
         log.info("分批插入完成，影响行数：{}", affectedRows);
         return ResponseEntity.ok().body(Result.success(message, null));
@@ -154,12 +177,12 @@ public abstract class BaseController<T, ID extends Serializable> {
     // 逐项更新
     @RequestMapping("/update")
     public ResponseEntity<Result<Void>> update(
-            @RequestParam(name = "total", defaultValue = "10")
-            @Min(value = 1, message = "总项数至少为 1")
-            int total
+            @RequestBody
+            @NotEmpty(message = "更新的数据不能为空")
+            @Valid
+            T[] entities
     ) {
-        List<T> dataList = service.parseFromJsonFile(filePath);
-        int affectedRows = service.update(dataList.subList(0, Math.min(total, dataList.size())));
+        int affectedRows = service.update(entities);
         String message = String.format("逐项更新 %d 条数据", affectedRows);
         log.info("逐项更新完成，影响行数：{}", affectedRows);
         return ResponseEntity.ok().body(Result.success(message, null));
@@ -168,16 +191,16 @@ public abstract class BaseController<T, ID extends Serializable> {
     // 分批更新
     @RequestMapping("/update-batch")
     public ResponseEntity<Result<Void>> updateBatch(
-            @RequestParam(name = "total", defaultValue = "1000")
-            @Min(value = 1, message = "总批数至少为 1")
-            int total,
+            @RequestBody
+            @NotEmpty(message = "更新的数据不能为空")
+            @Valid
+            List<T> entities,
 
             @RequestParam(name = "batch-size", defaultValue = "1000")
-            @Min(value = 1, message = "批大小至少为 1")
+            @Positive(message = "批大小必须为正")
             int batchSize
     ) {
-        List<T> dataList = service.parseFromJsonFile(filePath);
-        int affectedRows = service.updateBatch(dataList.subList(0, Math.min(total, dataList.size())), batchSize);
+        int affectedRows = service.updateBatch(entities, batchSize);
         String message = String.format("分批更新 %d 条数据", affectedRows);
         log.info("分批更新完成，影响行数：{}", affectedRows);
         return ResponseEntity.ok().body(Result.success(message, null));
@@ -187,11 +210,14 @@ public abstract class BaseController<T, ID extends Serializable> {
     // 逐项插入或更新
     @RequestMapping("/upsert")
     public ResponseEntity<Result<Void>> upsert(
-            @RequestParam(name = "total", defaultValue = "10")
-            @Min(value = 1, message = "总项数至少为 1")
-            int total
+            @RequestBody
+            @NotEmpty(message = "插入或更新的数据不能为空")
+            @Valid
+            List<T> entities
     ) {
-        int affectedRows = service.upsert(service.generateMock(total));
+        T[] entityArray = ArrayUtil.toArray(entities, entityClass);
+
+        int affectedRows = service.upsert(entityArray);
         String message = String.format("逐项插入或更新 %d 条数据", affectedRows);
         log.info("逐项插入或更新完成，影响行数：{}", affectedRows);
         return ResponseEntity.ok().body(Result.success(message, null));
@@ -200,15 +226,16 @@ public abstract class BaseController<T, ID extends Serializable> {
     // 分批插入或更新
     @RequestMapping("/upsert-batch")
     public ResponseEntity<Result<Void>> upsertBatch(
-            @RequestParam(name = "total", defaultValue = "1000")
-            @Min(value = 1, message = "总批数至少为 1")
-            int total,
+            @RequestBody
+            @NotEmpty(message = "插入或更新的数据不能为空")
+            @Valid
+            List<T> entities,
 
             @RequestParam(name = "batch-size", defaultValue = "1000")
-            @Min(value = 1, message = "批大小至少为 1")
+            @Positive(message = "批大小必须为正")
             int batchSize
     ) {
-        int affectedRows = service.upsertBatch(service.generateMock(total), batchSize);
+        int affectedRows = service.upsertBatch(entities, batchSize);
         String message = String.format("分批插入或更新 %d 条数据", affectedRows);
         log.info("分批插入或更新完成，影响行数：{}", affectedRows);
         return ResponseEntity.ok().body(Result.success(message, null));
@@ -220,7 +247,9 @@ public abstract class BaseController<T, ID extends Serializable> {
     public ResponseEntity<Result<Void>> deleteById(
             @RequestParam(name = "ids") String ids
     ) {
-        int affectedRows = service.deleteByIds(IdUtils.parseIds(ids, idParser));
+        List<ID> idList = Convert.toList(idClass, StrSplitter.split(ids, ',', 0, true, false));
+
+        int affectedRows = service.deleteByIds(idList);
         String message = String.format("分批更新 %d 条数据", affectedRows);
         log.info("分批更新完成，影响行数：{}", affectedRows);
         return ResponseEntity.ok().body(Result.success(message, null));
@@ -231,10 +260,12 @@ public abstract class BaseController<T, ID extends Serializable> {
     public ResponseEntity<Result<Void>> deleteBatchByIds(
             @RequestParam(name = "ids") String ids,
             @RequestParam(name = "batch-size", defaultValue = "1000")
-            @Min(value = 1, message = "批大小至少为 1")
+            @Positive(message = "批大小必须为正")
             int batchSize
     ) {
-        int affectedRows = service.deleteBatchByIds(IdUtils.parseIds(ids, idParser), batchSize);
+        List<ID> idList = Convert.toList(idClass, StrSplitter.split(ids, ',', 0, true, false));
+
+        int affectedRows = service.deleteBatchByIds(idList, batchSize);
         String message = String.format("逐项插入或更新 %d 条数据", affectedRows);
         log.info("逐项插入或更新完成，影响行数：{}", affectedRows);
         return ResponseEntity.ok().body(Result.success(message, null));

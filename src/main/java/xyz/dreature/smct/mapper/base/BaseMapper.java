@@ -1,7 +1,11 @@
-package xyz.dreature.smct.mapper;
+package xyz.dreature.smct.mapper.base;
+
+import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.cursor.Cursor;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 public interface BaseMapper<T, ID extends Serializable> {
     // ===== 查询基础操作 =====
@@ -11,11 +15,18 @@ public interface BaseMapper<T, ID extends Serializable> {
     // 查询全表
     List<T> selectAll();
 
+    // 查询全表（游标）
+    @Options(fetchSize = 1000)
+    Cursor<T> selectAllWithCursor();
+
     // 查询随机
-    List<T> selectRandom(int count);
+    List<T> selectRandom(int limit);
 
     // 查询页面
     List<T> selectByPage(int offset, int limit);
+
+    // 条件查询
+    List<T> selectByCondition(Map<String, Object> condition);
 
     // 单项查询
     T selectById(ID id);

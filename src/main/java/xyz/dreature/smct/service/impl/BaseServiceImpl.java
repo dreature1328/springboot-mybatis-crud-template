@@ -1,22 +1,25 @@
 package xyz.dreature.smct.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.cursor.Cursor;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.dreature.smct.common.util.BatchUtils;
-import xyz.dreature.smct.mapper.BaseMapper;
+import xyz.dreature.smct.mapper.base.BaseMapper;
 import xyz.dreature.smct.service.BaseService;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Transactional
-public abstract class BaseServiceImpl<T, ID extends Serializable> implements BaseService<T, ID> {
-    protected BaseMapper<T, ID> mapper;
+public abstract class BaseServiceImpl<T, ID extends Serializable, M extends BaseMapper<T, ID>> implements BaseService<T, ID, M> {
+    // ORM 映射器
+    protected M mapper;
 
-    public BaseServiceImpl(BaseMapper<T, ID> mapper) {
+    public BaseServiceImpl(M mapper) {
         this.mapper = mapper;
     }
 
@@ -35,11 +38,18 @@ public abstract class BaseServiceImpl<T, ID extends Serializable> implements Bas
         return mapper.selectAll();
     }
 
+    // 查询全表（游标）
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public Cursor<T> selectAllWithCursor() {
+        return mapper.selectAllWithCursor();
+    }
+
     // 查询随机
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public List<T> selectRandom(int count) {
-        return mapper.selectRandom(count);
+    public List<T> selectRandom(int limit) {
+        return mapper.selectRandom(limit);
     }
 
     // 查询页面
@@ -47,6 +57,13 @@ public abstract class BaseServiceImpl<T, ID extends Serializable> implements Bas
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public List<T> selectByPage(int offset, int limit) {
         return mapper.selectByPage(offset, limit);
+    }
+
+    // 条件查询
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public List<T> selectByCondition(Map<String, Object> condition) {
+        return mapper.selectByCondition(condition);
     }
 
     // 单项查询
