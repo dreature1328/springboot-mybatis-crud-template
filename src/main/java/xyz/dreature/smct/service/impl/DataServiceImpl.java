@@ -3,10 +3,13 @@ package xyz.dreature.smct.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.params.shadow.com.univocity.parsers.common.DataProcessingException;
+import org.apache.ibatis.cursor.Cursor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.dreature.smct.common.entity.Data;
+import xyz.dreature.smct.common.util.BatchUtils;
 import xyz.dreature.smct.mapper.DataMapper;
 import xyz.dreature.smct.service.DataService;
 
@@ -16,20 +19,33 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
-public class DataServiceImpl extends BaseServiceImpl<Data, Long> implements DataService {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final SecureRandom random = new SecureRandom();
+public class DataServiceImpl extends BaseServiceImpl<Data, Long, DataMapper> implements DataService {
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Autowired
     public DataServiceImpl(DataMapper dataMapper) {
         super(dataMapper);
     }
 
     // ===== 业务扩展操作 =====
+    // 处理全部（游标）
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public void processAllWithCursor(Consumer<Data> processor) {
+        try (Cursor<Data> cursor = mapper.selectAllWithCursor()) {
+            BatchUtils.processEach(cursor, processor);
+        } catch (IOException e) {
+            throw new RuntimeException("游标处理失败", e);
+        }
+    }
+
     // 生成随机字符串
     private String generateRandomString(int length) {
+        SecureRandom random = new SecureRandom();
         String CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         StringBuilder sb = new StringBuilder(length);
 
@@ -41,6 +57,7 @@ public class DataServiceImpl extends BaseServiceImpl<Data, Long> implements Data
 
     // 生成模拟数据
     public List<Data> generateMock(int count) {
+        SecureRandom random = new SecureRandom();
         List<Data> dataList = new ArrayList<>(count);
 
         for (int i = 0; i < count; i++) {
@@ -67,7 +84,7 @@ public class DataServiceImpl extends BaseServiceImpl<Data, Long> implements Data
     }
 
     // 解析 JSON 文件
-    public List<Data> parseFromJsonFile(String filePath) {
+    public List<Data> parseJsonFile(String filePath) {
         List<Data> dataList = new ArrayList<>();
         try {
             // 读取 JSON 文件为树结构
@@ -91,7 +108,7 @@ public class DataServiceImpl extends BaseServiceImpl<Data, Long> implements Data
             }
         } catch (IOException e) {
             log.error("JSON 解析失败: {}", e);
-            throw new DataProcessingException("JSON 文件解析失败", e);
+            throw new RuntimeException("JSON 文件解析失败", e);
         }
         return dataList;
     }

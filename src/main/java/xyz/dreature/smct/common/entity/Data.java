@@ -1,13 +1,24 @@
 package xyz.dreature.smct.common.entity;
 
-// 数据实体
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "数据实体")
 public class Data {
     // ===== 字段 =====
-    private Long id;              // 唯一标识符
-    private Integer numericValue; // 整型数值
-    private Double decimalValue;  // 浮点数值
-    private String textContent;   // 文本内容
-    private Boolean activeFlag;   // 激活标志
+    @Schema(description = "ID")
+    private Long id;
+
+    @Schema(description = "整型数值")
+    private Integer numericValue;
+
+    @Schema(description = "浮点数值")
+    private Double decimalValue;
+
+    @Schema(description = "文本内容")
+    private String textContent;
+
+    @Schema(description = "激活标志")
+    private Boolean activeFlag;
 
     // ===== 构造方法 =====
     // 无参构造器
